@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e0541f">
+</head>
+<body style="margin:0">
+<title>מד ריצה והליכה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Secular+One&display=swap">
+<style>
+/* פריסה: מסך אחד לטלפון — לשוניות למעלה (ריצה / כושר / התקדמות), מונה גדול, כפתור הפעלה, פירוט מתחת */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#15201a; --muted:#5d6b62; --line:#dde3dc; --soft:#e9eee8;
+  --run:#e0541f; --walk:#2f7d5b; --gym:#3b5bd6; --accent:#15201a; --onaccent:#ffffff;
+  --display:"Secular One","Rubik",system-ui,sans-serif;
+  --body:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#18211c; --ink:#eef3ee; --muted:#9aa89f; --line:#2a352f; --soft:#212b25;
+  --run:#ff7a45; --walk:#5cc196; --gym:#7f9bff; --accent:#eef3ee; --onaccent:#0f1512; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#18211c; --ink:#eef3ee; --muted:#9aa89f; --line:#2a352f; --soft:#212b25;
+  --run:#ff7a45; --walk:#5cc196; --gym:#7f9bff; --accent:#eef3ee; --onaccent:#0f1512; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:520px;margin:0 auto;padding-inline:16px;padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-family:var(--display);font-size:1.45rem;margin:0;font-weight:400}
+.todayK{font-size:.9rem;color:var(--muted);text-align:end}
+.todayK b{color:var(--ink);font-size:1.1rem;font-variant-numeric:tabular-nums}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--soft);padding:4px;border-radius:14px}
+.tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:500;padding:10px 4px;border-radius:10px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.panel{display:flex;flex-direction:column;gap:16px}
+.big{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center}
+.big .lbl{color:var(--muted);font-size:.85rem}
+.num{font-family:var(--display);font-size:clamp(3.6rem,20vw,6rem);line-height:1;font-variant-numeric:tabular-nums;margin-block:6px}
+.num small{font-size:1.3rem;color:var(--muted);margin-inline-start:6px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.row3 div{display:flex;flex-direction:column}
+.row3 b{font-size:1.3rem;font-variant-numeric:tabular-nums;font-weight:700}
+.row3 span{color:var(--muted);font-size:.8rem}
+.mode{display:inline-block;margin-top:12px;padding:4px 12px;border-radius:999px;font-size:.85rem;font-weight:500;background:var(--line);color:var(--muted)}
+.mode.run{background:var(--run);color:#fff}.mode.walk{background:var(--walk);color:#fff}.mode.gym{background:var(--gym);color:#fff}
+.go{appearance:none;border:0;border-radius:999px;font-family:var(--display);font-size:1.5rem;padding:17px;width:100%;cursor:pointer;color:#fff}
+.go.runbg{background:var(--run)}.go.gymbg{background:var(--gym)}
+.go.stop{background:var(--accent);color:var(--onaccent)}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--walk);outline-offset:3px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.part{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;border-top:5px solid var(--c)}
+.part h3{margin:0 0 4px;font-size:1rem;font-weight:500}
+.part .v{font-family:var(--display);font-size:1.7rem;font-variant-numeric:tabular-nums}
+.part .s{color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
+.msg{background:var(--surface);border:1px dashed var(--muted);border-radius:12px;padding:12px 14px;font-size:.92rem}
+.set{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.95rem}
+.set input{width:84px;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);text-align:center}
+.btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.92rem;padding:8px 14px;border-radius:10px;cursor:pointer}
+h2{font-family:var(--display);font-weight:400;font-size:1.2rem;margin:4px 0 0}
+.note{color:var(--muted);font-size:.8rem;margin:0}
+/* בחירת סוג אימון כושר */
+.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.types label{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
+.types input{position:absolute;opacity:0;pointer-events:none}
+.types label:has(input:checked){border-color:var(--gym);background:color-mix(in srgb,var(--gym) 10%,var(--surface))}
+.types label:has(input:focus-visible){outline:3px solid var(--walk);outline-offset:2px}
+.types b{font-weight:500;font-size:.95rem}.types span{color:var(--muted);font-size:.78rem}
+/* התקדמות */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--soft);padding:4px;border-radius:12px}
+.seg button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.92rem;padding:7px;border-radius:9px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:500}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.stat .k{color:var(--muted);font-size:.8rem}
+.stat .v{font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .d{font-size:.8rem;font-variant-numeric:tabular-nums}
+.up{color:var(--walk)}.down{color:var(--run)}
+.cheer{background:var(--accent);color:var(--onaccent);border-radius:16px;padding:16px 18px;font-size:1.05rem;font-weight:500}
+.cheer small{display:block;opacity:.75;font-weight:400;font-size:.85rem;margin-top:4px}
+.goal{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.bar{height:14px;background:var(--soft);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gym),var(--walk));border-radius:999px;transition:width .4s}
+.goal .top{display:flex;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums;font-size:.92rem;flex-wrap:wrap}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 10px 6px}
+.chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;gap:14px;justify-content:center;font-size:.8rem;color:var(--muted);padding-top:4px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:.9rem}
+th,td{padding:8px 4px;text-align:start;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:500;font-size:.78rem}
+.empty{color:var(--muted);font-size:.9rem;margin:0}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+  <header>
+    <h1>מד ריצה והליכה</h1>
+    <div class="todayK">היום שרפתי<br><b id="hdrKcal">0</b> קלוריות</div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" id="t-run" aria-selected="true" data-p="p-run">ריצה והליכה</button>
+    <button type="button" role="tab" id="t-gym" aria-selected="false" data-p="p-gym">כושר</button>
+    <button type="button" role="tab" id="t-prog" aria-selected="false" data-p="p-prog">התקדמות</button>
+  </nav>
+
+  <!-- ריצה -->
+  <section class="panel" id="p-run" role="tabpanel">
+    <div class="big" aria-live="polite">
+      <div class="lbl">ריצה והליכה היום</div>
+      <div class="num"><span id="totKm">0.00</span><small>ק״מ</small></div>
+      <div class="row3">
+        <div><b id="runAllKcal">0</b><span>קלוריות</span></div>
+        <div><b id="sesTime">00:00</b><span>זמן האימון</span></div>
+        <div><b id="speed">0.0</b><span>קמ״ש עכשיו</span></div>
+      </div>
+      <span class="mode" id="mode">ממתין</span>
+    </div>
+    <button class="go runbg" id="go" type="button">התחל ריצה</button>
+    <div class="msg" id="msg" hidden></div>
+    <div class="split">
+      <div class="part" style="--c:var(--run)"><h3>רצתי</h3><div class="v"><span id="runKm">0.00</span> ק״מ</div><div class="s"><span id="runKcal">0</span> קלוריות</div></div>
+      <div class="part" style="--c:var(--walk)"><h3>הלכתי</h3><div class="v"><span id="walkKm">0.00</span> ק״מ</div><div class="s"><span id="walkKcal">0</span> קלוריות</div></div>
+    </div>
+    <div class="set"><button class="btn" id="demo" type="button">הדגמה בלי GPS</button></div>
+    <p class="note">מעל 7 קמ״ש נחשב ריצה, מתחת לזה הליכה. בזמן ריצה השאר את המסך דולק, אחרת הטלפון מפסיק לקבל GPS.</p>
+  </section>
+
+  <!-- כושר -->
+  <section class="panel" id="p-gym" role="tabpanel" hidden>
+    <div class="big" aria-live="polite">
+      <div class="lbl">אימון כושר עכשיו</div>
+      <div class="num"><span id="gymNow">0</span><small>קלוריות</small></div>
+      <div class="row3">
+        <div><b id="gymTime">00:00</b><span>זמן אימון</span></div>
+        <div><b id="gymRate">0.0</b><span>קלוריות לדקה</span></div>
+        <div><b id="gymToday">0</b><span>כושר היום</span></div>
+      </div>
+      <span class="mode" id="gymMode">ממתין</span>
+    </div>
+    <fieldset style="border:0;padding:0;margin:0">
+      <legend style="font-weight:500;margin-bottom:8px">איזה אימון?</legend>
+      <div class="types" id="types"></div>
+    </fieldset>
+    <div class="btnrow" id="gymBtns">
+      <button class="go gymbg" id="gymGo" type="button" style="grid-column:1/-1">התחל אימון כושר</button>
+    </div>
+    <p class="note">באימון כושר אין צורך ב-GPS ואפשר לכבות את המסך: הזמן נשמר גם אם סוגרים את האפליקציה. החישוב לפי זמן, סוג האימון והמשקל שלך. זו הערכה, לא מדידה מדויקת.</p>
+  </section>
+
+  <!-- התקדמות -->
+  <section class="panel" id="p-prog" role="tabpanel" hidden>
+    <div class="seg" role="group" aria-label="תקופה">
+      <button type="button" data-r="day" aria-pressed="false">יום</button>
+      <button type="button" data-r="week" aria-pressed="false">שבוע</button>
+      <button type="button" data-r="month" aria-pressed="true">חודש</button>
+    </div>
+    <div class="cheer" id="cheer"></div>
+    <div class="stats">
+      <div class="stat"><div class="k">קלוריות</div><div class="v" id="sKcal">0</div><div class="d" id="dKcal"></div></div>
+      <div class="stat"><div class="k">אימונים</div><div class="v" id="sCount">0</div><div class="d" id="dCount"></div></div>
+      <div class="stat"><div class="k">ק״מ ריצה</div><div class="v" id="sRun">0</div><div class="d" id="dRun"></div></div>
+      <div class="stat"><div class="k">דקות כושר</div><div class="v" id="sGym">0</div><div class="d" id="dGym"></div></div>
+      <div class="stat"><div class="k">ק״מ הליכה</div><div class="v" id="sWalk">0</div><div class="d" id="dWalk"></div></div>
+      <div class="stat"><div class="k">רצף ימים</div><div class="v" id="sStreak">0</div><div class="d" id="dStreak"></div></div>
+    </div>
+    <div class="goal">
+      <div class="top"><b>יעד החודש</b><span><span id="gNow">0</span> מתוך <span id="gGoal">0</span> קלוריות</span></div>
+      <div class="bar" role="progressbar" aria-label="התקדמות ליעד החודש" id="gBarWrap"><i id="gBar" style="width:0%"></i></div>
+      <div class="note" id="gNote"></div>
+    </div>
+    <h2>30 הימים האחרונים</h2>
+    <div class="chart"><svg id="chart" viewBox="0 0 340 170" role="img" aria-label="קלוריות לכל יום"></svg>
+      <div class="legend"><span><i style="background:var(--run)"></i>ריצה</span><span><i style="background:var(--walk)"></i>הליכה</span><span><i style="background:var(--gym)"></i>כושר</span></div>
+    </div>
+    <h2>שיאים שלי</h2>
+    <div class="stats">
+      <div class="stat"><div class="k">היום הכי חזק</div><div class="v" id="rDay">0</div><div class="d" id="rDayD">קלוריות</div></div>
+      <div class="stat"><div class="k">הכי הרבה ריצה ביום</div><div class="v" id="rRun">0</div><div class="d" id="rRunD">ק״מ</div></div>
+    </div>
+    <h2>לפי חודשים</h2>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>חודש</th><th>קלוריות</th><th>ריצה</th><th>הליכה</th><th>כושר</th></tr></thead>
+      <tbody id="months"></tbody></table></div>
+    <h2>הגדרות</h2>
+    <div class="set"><label for="weight">המשקל שלי (ק״ג):</label><input id="weight" type="number" min="30" max="200" step="1" inputmode="numeric"></div>
+    <div class="set"><label for="goal">יעד קלוריות לחודש:</label><input id="goal" type="number" min="500" max="100000" step="500" inputmode="numeric"></div>
+    <p class="note">ריצה: בערך קלוריה אחת לכל ק״ג משקל לכל ק״מ, הליכה בערך חצי. כושר: לפי סוג האימון וזמן. הנתונים נשמרים בטלפון שלך בלבד.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const RUN_KMH=7, KEY='runtracker-v1';
+  const GYM=[
+    {id:'light', name:'משקלים קל',      hint:'הרבה מנוחה בין סטים', met:3.5},
+    {id:'normal',name:'משקלים רגיל',    hint:'אימון כוח רגיל',      met:5.0},
+    {id:'heavy', name:'משקלים כבד',     hint:'כבד, מעט מנוחה',      met:6.0},
+    {id:'body',  name:'משקל גוף',       hint:'מתח, שכיבות, בטן',    met:4.5},
+    {id:'circuit',name:'מעגלי / HIIT',  hint:'בלי עצירות, דופק גבוה',met:8.0},
+    {id:'cardio',name:'מכשירי אירובי', hint:'אופניים, אליפטי',     met:7.0}
+  ];
+  const pad=n=>String(n).padStart(2,'0');
+  const dayKey=d=>{d=d||new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+  const fmtT=s=>{s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+':'+pad(m):pad(m))+':'+pad(s%60)};
+  const fmt=n=>Math.round(n).toLocaleString('he-IL');
+
+  function load(){let s;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+    s=s||{};s.days=s.days||{};s.weight=s.weight||75;s.goal=s.goal||8000;s.gymType=s.gymType||'normal';return s}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
+  const store=load();
+  function day(k){k=k||dayKey();const d=store.days[k]||(store.days[k]={});
+    d.run=d.run||0;d.walk=d.walk||0;d.gymSec=d.gymSec||0;d.gymKcal=d.gymKcal||0;d.count=d.count||0;return d}
+  const W=()=>store.weight||75;
+  const runKcal=km=>W()*km*1.0, walkKcal=km=>W()*km*0.5;
+  function dayKcal(d){if(!d)return 0;return runKcal(d.run||0)+walkKcal(d.walk||0)+(d.gymKcal||0)}
+
+  /* ---------- לשוניות ---------- */
+  document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.id)));
+  function showTab(id){document.querySelectorAll('.tabs button').forEach(b=>{const on=b.id===id;b.setAttribute('aria-selected',on);$(b.dataset.p).hidden=!on});
+    try{localStorage.setItem(KEY+'-tab',id)}catch(e){} if(id==='t-prog')renderProg()}
+
+  /* ---------- ריצה ---------- */
+  let watchId=null,last=null,runStart=0,runTimer=null,wake=null,speeds=[],demoT=null;
+  function hav(a,b){const R=6371,r=x=>x*Math.PI/180,dLa=r(b.lat-a.lat),dLo=r(b.lon-a.lon);
+    const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+  function addDistance(km,kmh){
+    speeds.push(kmh);if(speeds.length>5)speeds.shift();
+    const avg=speeds.reduce((a,b)=>a+b,0)/speeds.length,d=day();
+    if(avg>=RUN_KMH)d.run+=km;else d.walk+=km;
+    $('speed').textContent=avg.toFixed(1);
+    const m=$('mode');m.className='mode '+(avg>=RUN_KMH?'run':'walk');m.textContent=avg>=RUN_KMH?'רץ עכשיו':'הולך עכשיו';
+    save();renderAll();
+  }
+  function onPos(p){
+    const c=p.coords;if(c.accuracy>35)return;
+    const pt={lat:c.latitude,lon:c.longitude,t:p.timestamp};
+    if(!last){last=pt;$('msg').hidden=true;return}
+    const km=hav(last,pt),hrs=(pt.t-last.t)/3600000;if(hrs<=0||km<0.004)return;
+    const kmh=km/hrs;last=pt;if(kmh>25)return;
+    if(kmh<1.5){$('speed').textContent='0.0';$('mode').className='mode';$('mode').textContent='עומד';return}
+    addDistance(km,kmh);
+  }
+  function onErr(e){showMsg(e.code===1?'הטלפון לא נתן הרשאת מיקום. פתח את האפליקציה מהקישור שלה בכרום, ואשר "מיקום" כשהדפדפן שואל.':'לא מצליח לקבל GPS. צא לשטח פתוח וחכה כמה שניות.')}
+  function showMsg(t){$('msg').textContent=t;$('msg').hidden=false}
+  async function keepAwake(){try{if('wakeLock' in navigator)wake=await navigator.wakeLock.request('screen')}catch(e){}}
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(watchId!==null||demoT)keepAwake();tickGym()}});
+  const running=()=>watchId!==null||demoT!==null;
+  function runTick(){$('sesTime').textContent=fmtT((Date.now()-runStart)/1000)}
+  function startRun(){
+    if(!('geolocation' in navigator)){showMsg('בדפדפן הזה אין GPS.');return}
+    if(store.gym){showMsg('יש אימון כושר פעיל. עצור אותו קודם בלשונית "כושר".');return}
+    last=null;speeds=[];runStart=Date.now();runTimer=setInterval(runTick,1000);day().count++;save();
+    showMsg('מחפש GPS… השאר את המסך דולק בזמן הריצה.');
+    watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+    keepAwake();setRunBtn(true);
+  }
+  function stopRun(){
+    if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;
+    if(demoT){clearInterval(demoT);demoT=null}
+    clearInterval(runTimer);try{wake&&wake.release()}catch(e){}wake=null;
+    $('speed').textContent='0.0';$('mode').className='mode';$('mode').textContent='הריצה נשמרה';
+    setRunBtn(false);save();renderAll();
+  }
+  function setRunBtn(on){const b=$('go');b.textContent=on?'עצור ריצה':'התחל ריצה';b.classList.toggle('stop',on)}
+  $('go').addEventListener('click',()=>running()?stopRun():startRun());
+  $('demo').addEventListener('click',()=>{
+    if(running()||store.gym)return;$('msg').hidden=true;speeds=[];runStart=Date.now();runTimer=setInterval(runTick,1000);setRunBtn(true);day().count++;let n=0;
+    demoT=setInterval(()=>{n++;const kmh=(n%20)<12?9.5:5;addDistance(kmh/3600*20,kmh)},1000);
+  });
+
+  /* ---------- כושר ---------- */
+  // store.gym = {type, startedAt, accSec, paused}  — נשמר כדי שהזמן ימשיך גם אם סוגרים את האפליקציה
+  $('types').innerHTML=GYM.map(g=>'<label><input type="radio" name="gtype" value="'+g.id+'"'+(g.id===store.gymType?' checked':'')+'><b>'+g.name+'</b><span>'+g.hint+'</span></label>').join('');
+  $('types').addEventListener('change',e=>{
+    const prev=store.gymType;store.gymType=e.target.value;
+    if(store.gym&&!store.gym.paused){ // מחליפים סוג באמצע: סוגרים את הקטע הקודם
+      bankGym(prev);store.gym.startedAt=Date.now();
+    }
+    save();tickGym();
+  });
+  const met=id=>(GYM.find(g=>g.id===id)||GYM[1]).met;
+  const kcalPerSec=id=>met(id)*W()/3600;
+  function liveSec(){const g=store.gym;if(!g)return 0;return g.paused?0:(Date.now()-g.startedAt)/1000}
+  function bankGym(type){ // מעביר את הזמן שעבר מאז ההתחלה ליום הנוכחי
+    const g=store.gym;if(!g||g.paused)return;
+    const sec=Math.min(liveSec(),4*3600);const d=day();
+    d.gymSec+=sec;d.gymKcal+=sec*kcalPerSec(type||store.gymType);g.sessionSec+=sec;g.sessionKcal+=sec*kcalPerSec(type||store.gymType);
+    g.startedAt=Date.now();
+  }
+  function startGym(){
+    if(running()){alertMsg('יש ריצה פעילה. עצור אותה קודם.');return}
+    store.gym={startedAt:Date.now(),paused:false,sessionSec:0,sessionKcal:0};day().count++;save();setGymBtns();tickGym();
+  }
+  function pauseGym(){bankGym();store.gym.paused=true;save();setGymBtns();tickGym()}
+  function resumeGym(){store.gym.paused=false;store.gym.startedAt=Date.now();save();setGymBtns();tickGym()}
+  function stopGym(){bankGym();const g=store.gym;store.gym=null;save();setGymBtns();
+    $('gymMode').className='mode';$('gymMode').textContent='נשמר: '+fmt(g.sessionKcal)+' קלוריות ב-'+fmtT(g.sessionSec);renderAll();
+    $('gymNow').textContent=fmt(g.sessionKcal);$('gymTime').textContent=fmtT(g.sessionSec)}
+  function alertMsg(t){$('gymMode').className='mode';$('gymMode').textContent=t}
+  function setGymBtns(){
+    const g=store.gym,box=$('gymBtns');
+    if(!g){box.innerHTML='<button class="go gymbg" id="gymGo" type="button" style="grid-column:1/-1">התחל אימון כושר</button>';$('gymGo').onclick=startGym;return}
+    box.innerHTML='<button class="go gymbg" id="gymPause" type="button">'+(g.paused?'המשך':'הפסקה')+'</button><button class="go stop" id="gymStop" type="button">סיים אימון</button>';
+    $('gymPause').onclick=()=>g.paused?resumeGym():pauseGym();$('gymStop').onclick=stopGym;
+  }
+  function tickGym(){
+    const g=store.gym,rate=kcalPerSec(store.gymType)*60;
+    $('gymRate').textContent=rate.toFixed(1);
+    if(!g){$('gymToday').textContent=fmt(day().gymKcal);return}
+    const sec=g.sessionSec+liveSec(),k=g.sessionKcal+liveSec()*kcalPerSec(store.gymType);
+    $('gymNow').textContent=fmt(k);$('gymTime').textContent=fmtT(sec);
+    $('gymToday').textContent=fmt(day().gymKcal+liveSec()*kcalPerSec(store.gymType));
+    const m=$('gymMode');m.className='mode '+(g.paused?'':'gym');m.textContent=g.paused?'בהפסקה':'מתאמן עכשיו';
+    $('hdrKcal').textContent=fmt(dayKcal(day())+liveSec()*kcalPerSec(store.gymType));
+  }
+  setInterval(()=>{if(store.gym&&!store.gym.paused){tickGym();if(liveSec()>60){bankGym();save()}}},1000);
+
+  /* ---------- התקדמות ---------- */
+  let range='month';
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{range=b.dataset.r;renderProg()}));
+  function sumRange(from,to){ // כולל שני הקצוות, תאריכים
+    const r={kcal:0,run:0,walk:0,gym:0,count:0};
+    for(const d=new Date(from);d<=to;d.setDate(d.getDate()+1)){const x=store.days[dayKey(d)];if(!x)continue;
+      r.kcal+=dayKcal(x);r.run+=x.run||0;r.walk+=x.walk||0;r.gym+=(x.gymSec||0)/60;r.count+=x.count||0}
+    return r;
+  }
+  function periods(){
+    const t=new Date();t.setHours(0,0,0,0);
+    if(range==='day'){const y=new Date(t);y.setDate(t.getDate()-1);return {cur:[t,t],prev:[y,y],name:'אתמול'}}
+    if(range==='week'){const s=new Date(t);s.setDate(t.getDate()-t.getDay());const ps=new Date(s);ps.setDate(s.getDate()-7);const pe=new Date(t);pe.setDate(t.getDate()-7);return {cur:[s,t],prev:[ps,pe],name:'אותו זמן בשבוע שעבר'}}
+    const s=new Date(t.getFullYear(),t.getMonth(),1),ps=new Date(t.getFullYear(),t.getMonth()-1,1);
+    const pe=new Date(t.getFullYear(),t.getMonth()-1,Math.min(t.getDate(),new Date(t.getFullYear(),t.getMonth(),0).getDate()));
+    return {cur:[s,t],prev:[ps,pe],name:'אותו זמן בחודש שעבר'};
+  }
+  function diff(el,a,b,unit){
+    if(b<=0&&a<=0){el.textContent='';el.className='d';return}
+    if(b<=0){el.textContent='חדש! לא היה קודם';el.className='d up';return}
+    const p=Math.round((a-b)/b*100);el.textContent=(p>=0?'▲ ':'▼ ')+Math.abs(p)+'% לעומת קודם';el.className='d '+(p>=0?'up':'down');
+  }
+  function streak(){let n=0;const d=new Date();if(!active(dayKey(d)))d.setDate(d.getDate()-1);
+    while(active(dayKey(d))){n++;d.setDate(d.getDate()-1)}return n}
+  const active=k=>{const x=store.days[k];return x&&dayKcal(x)>=30};
+  function renderProg(){
+    document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===range));
+    const p=periods(),c=sumRange(...p.cur),v=sumRange(...p.prev);
+    $('sKcal').textContent=fmt(c.kcal);$('sCount').textContent=c.count;$('sRun').textContent=c.run.toFixed(1);
+    $('sWalk').textContent=c.walk.toFixed(1);$('sGym').textContent=fmt(c.gym);
+    diff($('dKcal'),c.kcal,v.kcal);diff($('dCount'),c.count,v.count);diff($('dRun'),c.run,v.run);diff($('dWalk'),c.walk,v.walk);diff($('dGym'),c.gym,v.gym);
+    const st=streak();$('sStreak').textContent=st;$('dStreak').textContent=st?'ימים ברצף עם אימון':'התאמן היום כדי להתחיל רצף';$('dStreak').className='d';
+
+    // יעד חודשי
+    const t=new Date(),m=sumRange(new Date(t.getFullYear(),t.getMonth(),1),t).kcal,goal=store.goal;
+    const pct=Math.min(100,m/goal*100),dim=new Date(t.getFullYear(),t.getMonth()+1,0).getDate(),left=dim-t.getDate()+1;
+    $('gNow').textContent=fmt(m);$('gGoal').textContent=fmt(goal);$('gBar').style.width=pct+'%';$('gBarWrap').setAttribute('aria-valuenow',Math.round(pct));
+    $('gNote').textContent=m>=goal?'הגעת ליעד החודש! אפשר להעלות אותו בהגדרות.':'נשארו '+fmt(goal-m)+' קלוריות ב-'+left+' ימים, בערך '+fmt((goal-m)/left)+' ליום.';
+
+    // הודעת עידוד
+    const pctPrev=v.kcal>0?Math.round((c.kcal-v.kcal)/v.kcal*100):null;let line,sub;
+    if(c.kcal<1){line='עוד לא התאמנת '+(range==='day'?'היום':range==='week'?'השבוע':'החודש')+'.';sub='אימון אחד קטן וכבר יש התחלה.'}
+    else if(pctPrev===null){line='התחלה מצוינת: '+fmt(c.kcal)+' קלוריות.';sub='מכאן רק בונים למעלה.'}
+    else if(pctPrev>=0){line='אתה '+pctPrev+'% מעל '+p.name+'.';sub='ככה ממשיכים! '+(st>=3?st+' ימים ברצף.':'')}
+    else{line='חסרות לך '+fmt(v.kcal-c.kcal)+' קלוריות כדי לעקוף את '+p.name+'.';sub='אימון אחד ואתה שם.'}
+    $('cheer').innerHTML='';$('cheer').append(line);const s=document.createElement('small');s.textContent=sub;$('cheer').append(s);
+
+    // שיאים
+    let bd=0,bdk='',br=0,brk='';
+    for(const k in store.days){const x=store.days[k],kc=dayKcal(x);if(kc>bd){bd=kc;bdk=k}if((x.run||0)>br){br=x.run;brk=k}}
+    const dm=k=>{if(!k)return '';const [y,mm,dd]=k.split('-');return dd+'/'+mm};
+    $('rDay').textContent=fmt(bd);$('rDayD').textContent='קלוריות'+(bdk?' · '+dm(bdk):'');
+    $('rRun').textContent=br.toFixed(2);$('rRunD').textContent='ק״מ'+(brk?' · '+dm(brk):'');
+
+    drawChart();renderMonths();
+  }
+  function drawChart(){
+    const svg=$('chart'),Wd=340,H=170,top=10,bot=24,left=6,right=34,n=30,cw=(Wd-left-right)/n,data=[];
+    for(let i=0;i<n;i++){const d=new Date();d.setDate(d.getDate()-i);const x=store.days[dayKey(d)]||{};
+      data.push({d,r:runKcal(x.run||0),w:walkKcal(x.walk||0),g:x.gymKcal||0})}
+    const max=Math.max(100,...data.map(x=>x.r+x.w+x.g));
+    const step=max<=300?100:max<=600?200:max<=1500?500:1000,maxS=Math.ceil(max/step)*step,ph=H-top-bot,y=v=>top+ph-v/maxS*ph;
+    let s='';
+    for(let v=0;v<=maxS;v+=step){s+='<line x1="'+left+'" x2="'+(Wd-right)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--line)" stroke-width="1"/>';
+      s+='<text x="'+(Wd-right+4)+'" y="'+(y(v)+4)+'" font-size="10" fill="var(--muted)" font-family="Rubik,sans-serif">'+v+'</text>'}
+    // היום בצד ימין (תחילת הקריאה בעברית), ימים קודמים שמאלה
+    data.forEach((x,i)=>{const xr=Wd-right-(i+1)*cw+1.5,bw=cw-3;let base=0;
+      [['r','var(--run)'],['w','var(--walk)'],['g','var(--gym)']].forEach(([k,col])=>{const v=x[k];if(v<=0)return;
+        s+='<rect x="'+xr.toFixed(1)+'" y="'+y(base+v).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+(y(base)-y(base+v)).toFixed(1)+'" fill="'+col+'" rx="1.5"><title>'+x.d.getDate()+'/'+(x.d.getMonth()+1)+': '+Math.round(v)+'</title></rect>';base+=v});
+      if(i===0||x.d.getDate()===1||i%7===0)s+='<text x="'+(xr+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="9.5" text-anchor="middle" fill="var(--muted)" font-family="Rubik,sans-serif">'+(i===0?'היום':x.d.getDate()+'/'+(x.d.getMonth()+1))+'</text>';
+    });
+    svg.innerHTML=s;
+  }
+  function renderMonths(){
+    const by={};for(const k in store.days){const m=k.slice(0,7),x=store.days[k];const o=by[m]||(by[m]={k:0,r:0,w:0,g:0});
+      o.k+=dayKcal(x);o.r+=x.run||0;o.w+=x.walk||0;o.g+=(x.gymSec||0)/60}
+    const keys=Object.keys(by).filter(m=>by[m].k>=1).sort().reverse();
+    $('months').innerHTML=keys.length?keys.map(m=>{const o=by[m],[y,mm]=m.split('-');
+      return '<tr><td>'+mm+'/'+y+'</td><td>'+fmt(o.k)+'</td><td>'+o.r.toFixed(1)+' ק״מ</td><td>'+o.w.toFixed(1)+' ק״מ</td><td>'+fmt(o.g)+' דק׳</td></tr>'}).join('')
+      :'<tr><td colspan="5" class="empty">אחרי האימון הראשון יופיע כאן סיכום חודשי.</td></tr>';
+  }
+
+  /* ---------- הגדרות ---------- */
+  $('weight').value=store.weight;$('goal').value=store.goal;
+  $('weight').addEventListener('change',()=>{const w=+$('weight').value;if(w>=30&&w<=200){store.weight=w;save();renderAll()}});
+  $('goal').addEventListener('change',()=>{const g=+$('goal').value;if(g>=500){store.goal=g;save();renderProg()}});
+
+  function renderAll(){
+    const d=day();
+    $('totKm').textContent=(d.run+d.walk).toFixed(2);
+    $('runKm').textContent=d.run.toFixed(2);$('walkKm').textContent=d.walk.toFixed(2);
+    $('runKcal').textContent=fmt(runKcal(d.run));$('walkKcal').textContent=fmt(walkKcal(d.walk));
+    $('runAllKcal').textContent=fmt(runKcal(d.run)+walkKcal(d.walk));
+    $('hdrKcal').textContent=fmt(dayKcal(d));
+    tickGym();if(!$('p-prog').hidden)renderProg();
+  }
+  setGymBtns();renderAll();
+  let t0='t-run';try{t0=localStorage.getItem(KEY+'-tab')||(store.gym?'t-gym':'t-run')}catch(e){}
+  if(store.gym)t0='t-gym';showTab($(t0)?t0:'t-run');
+})();
+</script>
+
+</body>
+</html>
