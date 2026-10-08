@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#e0541f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body style="margin:0">
 <title>מד ריצה והליכה</title>
@@ -421,5 +426,13 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
 })();
 </script>
 
+<button id="installBtn" type="button" hidden style="position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9;border:0;border-radius:14px;padding:14px;font:500 1.05rem Rubik,system-ui,sans-serif;background:#e0541f;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);cursor:pointer">📲 התקן את האפליקציה בטלפון</button>
+<script>
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;document.getElementById('installBtn').hidden=false});
+document.getElementById('installBtn').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();await deferredInstall.userChoice.catch(()=>{});deferredInstall=null;document.getElementById('installBtn').hidden=true});
+window.addEventListener('appinstalled',()=>{document.getElementById('installBtn').hidden=true});
+</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
 </body>
 </html>
