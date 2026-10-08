@@ -35,8 +35,8 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px}
 h1{font-family:var(--display);font-size:1.45rem;margin:0;font-weight:400}
 .todayK{font-size:.9rem;color:var(--muted);text-align:end}
 .todayK b{color:var(--ink);font-size:1.1rem;font-variant-numeric:tabular-nums}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--soft);padding:4px;border-radius:14px}
-.tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:500;padding:10px 4px;border-radius:10px;cursor:pointer}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--soft);padding:4px;border-radius:14px}
+.tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:500;font-size:.85rem;padding:10px 2px;border-radius:10px;cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .panel{display:flex;flex-direction:column;gap:16px}
 .big{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center}
@@ -97,6 +97,22 @@ th,td{padding:8px 4px;text-align:start;border-bottom:1px solid var(--line)}
 th{color:var(--muted);font-weight:500;font-size:.78rem}
 .empty{color:var(--muted);font-size:.9rem;margin:0}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+/* הגדרות והתקנה */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.card h2{margin:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:500}
+.field .row{display:flex;align-items:center;gap:10px}
+.field input{width:130px;font:500 1.3rem var(--body);padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);text-align:center;font-variant-numeric:tabular-nums}
+.field .unit{color:var(--muted)}
+.field .hint{color:var(--muted);font-size:.82rem}
+.saved{color:var(--walk);font-size:.9rem;font-weight:500;min-height:1.3em}
+.install{appearance:none;border:0;border-radius:14px;padding:16px;font:400 1.3rem var(--display);background:var(--run);color:#fff;cursor:pointer;width:100%}
+.install.done{background:var(--walk)}
+.steps{margin:0;padding-inline-start:22px;display:flex;flex-direction:column;gap:8px}
+.steps b{color:var(--run)}
+.topbar{appearance:none;border:2px dashed var(--run);background:color-mix(in srgb,var(--run) 8%,var(--surface));color:var(--ink);border-radius:12px;padding:10px 12px;font:500 .95rem var(--body);cursor:pointer;text-align:start}
+.offline{background:var(--soft);color:var(--muted);border-radius:10px;padding:6px 10px;font-size:.85rem;text-align:center}
 </style>
 
 <div class="wrap" dir="rtl" lang="he">
@@ -106,10 +122,13 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
   </header>
 
   <nav class="tabs" role="tablist">
-    <button type="button" role="tab" id="t-run" aria-selected="true" data-p="p-run">ריצה והליכה</button>
-    <button type="button" role="tab" id="t-gym" aria-selected="false" data-p="p-gym">כושר</button>
-    <button type="button" role="tab" id="t-prog" aria-selected="false" data-p="p-prog">התקדמות</button>
+    <button type="button" role="tab" id="t-run" aria-selected="true" data-p="p-run">🏃 ריצה</button>
+    <button type="button" role="tab" id="t-gym" aria-selected="false" data-p="p-gym">🏋️ כושר</button>
+    <button type="button" role="tab" id="t-prog" aria-selected="false" data-p="p-prog">📈 התקדמות</button>
+    <button type="button" role="tab" id="t-set" aria-selected="false" data-p="p-set">⚙️ הגדרות</button>
   </nav>
+  <div class="offline" id="offline" hidden>אין אינטרנט כרגע – האפליקציה ממשיכה לעבוד והכל נשמר</div>
+  <button class="topbar" id="topInstall" type="button" hidden>📲 עוד לא התקנת? לחץ כאן כדי להתקין את האפליקציה בטלפון</button>
 
   <!-- ריצה -->
   <section class="panel" id="p-run" role="tabpanel">
@@ -189,10 +208,47 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
     <div style="overflow-x:auto"><table>
       <thead><tr><th>חודש</th><th>קלוריות</th><th>ריצה</th><th>הליכה</th><th>כושר</th></tr></thead>
       <tbody id="months"></tbody></table></div>
-    <h2>הגדרות</h2>
-    <div class="set"><label for="weight">המשקל שלי (ק״ג):</label><input id="weight" type="number" min="30" max="200" step="1" inputmode="numeric"></div>
-    <div class="set"><label for="goal">יעד קלוריות לחודש:</label><input id="goal" type="number" min="500" max="100000" step="500" inputmode="numeric"></div>
-    <p class="note">ריצה: בערך קלוריה אחת לכל ק״ג משקל לכל ק״מ, הליכה בערך חצי. כושר: לפי סוג האימון וזמן. הנתונים נשמרים בטלפון שלך בלבד.</p>
+  </section>
+
+  <!-- הגדרות -->
+  <section class="panel" id="p-set" role="tabpanel" hidden>
+    <div class="card">
+      <h2>הפרטים שלי</h2>
+      <div class="field">
+        <label for="weight">המשקל שלי</label>
+        <div class="row"><input id="weight" type="number" min="30" max="200" step="1" inputmode="numeric"><span class="unit">ק״ג</span></div>
+        <span class="hint">לפי המשקל מחושבות הקלוריות בריצה, בהליכה ובכושר.</span>
+      </div>
+      <div class="field">
+        <label for="goal">היעד שלי לחודש</label>
+        <div class="row"><input id="goal" type="number" min="500" max="100000" step="500" inputmode="numeric"><span class="unit">קלוריות</span></div>
+        <span class="hint">כמה קלוריות אתה רוצה לשרוף בחודש. אפשר להתחיל ב-8,000 ולהעלות.</span>
+      </div>
+      <button class="install" id="saveSet" type="button" style="background:var(--accent);color:var(--onaccent)">שמור</button>
+      <div class="saved" id="savedMsg" aria-live="polite"></div>
+    </div>
+
+    <div class="card" id="installCard">
+      <h2>התקנת האפליקציה בטלפון</h2>
+      <p class="note" style="font-size:.9rem">אחרי ההתקנה יהיה לך אייקון במסך הבית, כמו של יוטיוב או וואטסאפ. לוחצים עליו והאפליקציה נפתחת, גם בלי אינטרנט.</p>
+      <button class="install" id="installBtn2" type="button">📲 התקן את האפליקציה בטלפון</button>
+      <div id="installHelp" hidden>
+        <p style="margin:0 0 8px;font-weight:500">הטלפון לא פתח חלון התקנה. עשה ככה:</p>
+        <ol class="steps" id="installSteps"></ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>גיבוי</h2>
+      <p class="note" style="font-size:.9rem">כל האימונים נשמרים בטלפון. כדי לא לאבד אותם (למשל אם מחליפים טלפון), שמור גיבוי לקובץ.</p>
+      <div class="btnrow">
+        <button class="btn" id="backupBtn" type="button">💾 שמור גיבוי לקובץ</button>
+        <button class="btn" id="restoreBtn" type="button">📂 שחזר מקובץ</button>
+      </div>
+      <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+      <div class="saved" id="backupMsg" aria-live="polite"></div>
+    </div>
+    <p class="note">ריצה: בערך קלוריה אחת לכל ק״ג משקל לכל ק״מ, הליכה בערך חצי. כושר: לפי סוג האימון וזמן. זו הערכה, לא מדידה מדויקת.</p>
   </section>
 </div>
 
@@ -408,8 +464,67 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
 
   /* ---------- הגדרות ---------- */
   $('weight').value=store.weight;$('goal').value=store.goal;
-  $('weight').addEventListener('change',()=>{const w=+$('weight').value;if(w>=30&&w<=200){store.weight=w;save();renderAll()}});
-  $('goal').addEventListener('change',()=>{const g=+$('goal').value;if(g>=500){store.goal=g;save();renderProg()}});
+  function saveSettings(){
+    const w=+$('weight').value,g=+$('goal').value;
+    if(!(w>=30&&w<=200)){$('savedMsg').style.color='var(--run)';$('savedMsg').textContent='המשקל צריך להיות בין 30 ל-200 ק״ג.';return}
+    if(!(g>=500)){$('savedMsg').style.color='var(--run)';$('savedMsg').textContent='היעד צריך להיות לפחות 500 קלוריות.';return}
+    store.weight=w;store.goal=g;save();renderAll();renderProg();
+    $('savedMsg').style.color='';$('savedMsg').textContent='✓ נשמר: '+w+' ק״ג, יעד '+fmt(g)+' קלוריות לחודש';
+  }
+  $('saveSet').addEventListener('click',saveSettings);
+  $('weight').addEventListener('change',saveSettings);$('goal').addEventListener('change',saveSettings);
+
+  /* ---------- גיבוי ---------- */
+  $('backupBtn').addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify(store,null,1)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='גיבוי-מד-ריצה-'+dayKey()+'.json';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+    $('backupMsg').textContent='✓ הקובץ נשמר בתיקיית ההורדות של הטלפון';
+  });
+  $('restoreBtn').addEventListener('click',()=>$('restoreFile').click());
+  $('restoreFile').addEventListener('change',async e=>{
+    const f=e.target.files[0];if(!f)return;
+    try{const d=JSON.parse(await f.text());if(!d||typeof d.days!=='object')throw 0;
+      for(const k in d.days){const a=d.days[k],b=store.days[k];if(!b||((a.run||0)+(a.walk||0)+(a.gymKcal||0))>((b.run||0)+(b.walk||0)+(b.gymKcal||0)))store.days[k]=a}
+      if(d.weight)store.weight=d.weight;if(d.goal)store.goal=d.goal;save();
+      $('weight').value=store.weight;$('goal').value=store.goal;renderAll();renderProg();
+      $('backupMsg').textContent='✓ הגיבוי שוחזר ('+Object.keys(d.days).length+' ימים)';
+    }catch(_){ $('backupMsg').textContent='הקובץ הזה לא גיבוי של מד ריצה. בחר את קובץ הגיבוי ששמרת.' }
+    e.target.value='';
+  });
+
+  /* ---------- אינטרנט ---------- */
+  function netState(){$('offline').hidden=navigator.onLine}
+  addEventListener('online',netState);addEventListener('offline',netState);netState();
+
+  /* ---------- התקנה ---------- */
+  let deferredInstall=null;
+  const installed=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  function installUI(){
+    const done=installed();
+    $('topInstall').hidden=done;
+    const b=$('installBtn2');
+    if(done){b.textContent='✓ האפליקציה מותקנת בטלפון';b.classList.add('done');b.disabled=true;$('installHelp').hidden=true}
+  }
+  function showSteps(){
+    const ua=navigator.userAgent,isChrome=/Chrome\//.test(ua)&&!/MiuiBrowser|XiaoMi|SamsungBrowser|EdgA|OPR/i.test(ua),isIOS=/iPhone|iPad/.test(ua);
+    let s;
+    if(isIOS)s=['לחץ על כפתור <b>השיתוף</b> (ריבוע עם חץ) למטה.','בחר <b>"הוסף למסך הבית"</b>.','לחץ <b>"הוסף"</b>.'];
+    else if(!isChrome)s=['האפליקציה מותקנת הכי טוב דרך <b>כרום</b>. העתק את הכתובת: <b>mutzlach-il.github.io/run-tracker</b>','פתח את <b>Chrome</b> בטלפון והדבק אותה בשורת הכתובת.','לחץ על <b>שלוש הנקודות ⋮</b> בפינה למעלה.','בחר <b>"התקנת אפליקציה"</b> או <b>"הוספה למסך הבית"</b>, ואז <b>"התקנה"</b>.'];
+    else s=['לחץ על <b>שלוש הנקודות ⋮</b> בפינה העליונה של המסך.','בחר <b>"התקנת אפליקציה"</b> (או <b>"הוספה למסך הבית"</b>).','לחץ <b>"התקנה"</b>.','חפש במסך הבית את האייקון הכתום <b>"מד ריצה"</b>. אם הוא לא מופיע: הגדרות ← אפליקציות ← Chrome ← הרשאות נוספות ← סמן <b>"קיצורי דרך במסך הבית"</b>.'];
+    $('installSteps').innerHTML=s.map(x=>'<li>'+x+'</li>').join('');$('installHelp').hidden=false;
+  }
+  async function doInstall(){
+    if(installed())return;
+    if(deferredInstall){deferredInstall.prompt();const r=await deferredInstall.userChoice.catch(()=>null);deferredInstall=null;
+      if(r&&r.outcome==='accepted'){$('installBtn2').textContent='✓ מתקין… האייקון יופיע במסך הבית';return}}
+    showSteps();
+  }
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e});
+  addEventListener('appinstalled',()=>{$('installBtn2').textContent='✓ האפליקציה הותקנה! חפש את האייקון "מד ריצה"';$('installBtn2').classList.add('done');$('topInstall').hidden=true});
+  $('installBtn2').addEventListener('click',doInstall);
+  $('topInstall').addEventListener('click',()=>{showTab('t-set');setTimeout(()=>$('installCard').scrollIntoView({behavior:'smooth',block:'start'}),50)});
+  installUI();
 
   function renderAll(){
     const d=day();
@@ -426,13 +541,6 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
 })();
 </script>
 
-<button id="installBtn" type="button" hidden style="position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9;border:0;border-radius:14px;padding:14px;font:500 1.05rem Rubik,system-ui,sans-serif;background:#e0541f;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);cursor:pointer">📲 התקן את האפליקציה בטלפון</button>
-<script>
-let deferredInstall=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;document.getElementById('installBtn').hidden=false});
-document.getElementById('installBtn').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();await deferredInstall.userChoice.catch(()=>{});deferredInstall=null;document.getElementById('installBtn').hidden=true});
-window.addEventListener('appinstalled',()=>{document.getElementById('installBtn').hidden=true});
-</script>
-<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});</script>
 </body>
 </html>
