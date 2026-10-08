@@ -235,6 +235,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
       <div id="installHelp" hidden>
         <p style="margin:0 0 8px;font-weight:500">הטלפון לא פתח חלון התקנה. עשה ככה:</p>
         <ol class="steps" id="installSteps"></ol>
+        <a class="install" id="openChrome" href="intent://mutzlach-il.github.io/run-tracker/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fmutzlach-il.github.io%2Frun-tracker%2F;end" style="display:block;text-align:center;text-decoration:none;margin-top:12px;background:var(--gym)">🌐 פתח בכרום</a>
       </div>
     </div>
 
@@ -511,7 +512,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
     let s;
     if(isIOS)s=['לחץ על כפתור <b>השיתוף</b> (ריבוע עם חץ) למטה.','בחר <b>"הוסף למסך הבית"</b>.','לחץ <b>"הוסף"</b>.'];
     else if(!isChrome)s=['האפליקציה מותקנת הכי טוב דרך <b>כרום</b>. העתק את הכתובת: <b>mutzlach-il.github.io/run-tracker</b>','פתח את <b>Chrome</b> בטלפון והדבק אותה בשורת הכתובת.','לחץ על <b>שלוש הנקודות ⋮</b> בפינה למעלה.','בחר <b>"התקנת אפליקציה"</b> או <b>"הוספה למסך הבית"</b>, ואז <b>"התקנה"</b>.'];
-    else s=['לחץ על <b>שלוש הנקודות ⋮</b> בפינה העליונה של המסך.','בחר <b>"התקנת אפליקציה"</b> (או <b>"הוספה למסך הבית"</b>).','לחץ <b>"התקנה"</b>.','חפש במסך הבית את האייקון הכתום <b>"מד ריצה"</b>. אם הוא לא מופיע: הגדרות ← אפליקציות ← Chrome ← הרשאות נוספות ← סמן <b>"קיצורי דרך במסך הבית"</b>.'];
+    else s=['אם בתפריט של שלוש הנקודות כתוב <b>"פתח בדפדפן"</b> או <b>"פתח ב-Chrome"</b>, לחץ עליו קודם (או על הכפתור הכחול <b>"פתח בכרום"</b> כאן למטה). זה פותח את כרום המלא, ורק שם אפשר להתקין.','בכרום המלא, לחץ שוב על <b>שלוש הנקודות ⋮</b> בפינה העליונה.','בחר <b>"התקנת אפליקציה"</b> (או <b>"הוספה למסך הבית"</b>).','לחץ <b>"התקנה"</b>.','חפש במסך הבית את האייקון הכתום <b>"מד ריצה"</b>. אם הוא לא מופיע: הגדרות ← אפליקציות ← Chrome ← הרשאות נוספות ← סמן <b>"קיצורי דרך במסך הבית"</b>.'];
     $('installSteps').innerHTML=s.map(x=>'<li>'+x+'</li>').join('');$('installHelp').hidden=false;
   }
   async function doInstall(){
