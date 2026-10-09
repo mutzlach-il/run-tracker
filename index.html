@@ -231,7 +231,9 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
     <div class="card" id="installCard">
       <h2>התקנת האפליקציה בטלפון</h2>
       <p class="note" style="font-size:.9rem">אחרי ההתקנה יהיה לך אייקון במסך הבית, כמו של יוטיוב או וואטסאפ. לוחצים עליו והאפליקציה נפתחת, גם בלי אינטרנט.</p>
-      <button class="install" id="installBtn2" type="button">📲 התקן את האפליקציה בטלפון</button>
+      <a class="install" id="apkLink" href="https://github.com/mutzlach-il/run-tracker/releases/download/app/run-tracker.apk" style="display:block;text-align:center;text-decoration:none">⬇️ הורד את האפליקציה לאנדרואיד</a>
+      <p class="note" style="font-size:.85rem">אחרי ההורדה: פתח את הקובץ <b>run-tracker.apk</b> מההתראה או מתיקיית ההורדות ולחץ <b>"התקנה"</b>. אם הטלפון שואל, אשר לכרום להתקין אפליקציות.</p>
+      <button class="btn" id="installBtn2" type="button">📲 או: התקנה דרך כרום</button>
       <div id="installHelp" hidden>
         <p style="margin:0 0 8px;font-weight:500">הטלפון לא פתח חלון התקנה. עשה ככה:</p>
         <ol class="steps" id="installSteps"></ol>
@@ -308,7 +310,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
   }
   function onErr(e){showMsg(e.code===1?'הטלפון לא נתן הרשאת מיקום. פתח את האפליקציה מהקישור שלה בכרום, ואשר "מיקום" כשהדפדפן שואל.':'לא מצליח לקבל GPS. צא לשטח פתוח וחכה כמה שניות.')}
   function showMsg(t){$('msg').textContent=t;$('msg').hidden=false}
-  async function keepAwake(){try{if('wakeLock' in navigator)wake=await navigator.wakeLock.request('screen')}catch(e){}}
+  async function keepAwake(){try{window.AndroidApp&&AndroidApp.keepScreenOn(true)}catch(e){}try{if('wakeLock' in navigator)wake=await navigator.wakeLock.request('screen')}catch(e){}}
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(watchId!==null||demoT)keepAwake();tickGym()}});
   const running=()=>watchId!==null||demoT!==null;
   function runTick(){$('sesTime').textContent=fmtT((Date.now()-runStart)/1000)}
@@ -323,7 +325,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
   function stopRun(){
     if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;
     if(demoT){clearInterval(demoT);demoT=null}
-    clearInterval(runTimer);try{wake&&wake.release()}catch(e){}wake=null;
+    clearInterval(runTimer);try{wake&&wake.release()}catch(e){}wake=null;try{window.AndroidApp&&AndroidApp.keepScreenOn(false)}catch(e){}
     $('speed').textContent='0.0';$('mode').className='mode';$('mode').textContent='הריצה נשמרה';
     setRunBtn(false);save();renderAll();
   }
@@ -477,6 +479,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
 
   /* ---------- גיבוי ---------- */
   $('backupBtn').addEventListener('click',()=>{
+    if(window.AndroidApp){const r=AndroidApp.saveFile('גיבוי-מד-ריצה-'+dayKey()+'.json',JSON.stringify(store,null,1));$('backupMsg').textContent=r==='ok'?'✓ הקובץ נשמר בתיקיית ההורדות (Download) של הטלפון':'לא הצלחתי לשמור. נסה שוב.';return}
     const blob=new Blob([JSON.stringify(store,null,1)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='גיבוי-מד-ריצה-'+dayKey()+'.json';
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
@@ -500,11 +503,13 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
 
   /* ---------- התקנה ---------- */
   let deferredInstall=null;
-  const installed=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  const isApp=!!window.AndroidApp;
+  const installed=()=>isApp||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
   function installUI(){
     const done=installed();
     $('topInstall').hidden=done;
     const b=$('installBtn2');
+    if(isApp){$('installCard').hidden=true;return}
     if(done){b.textContent='✓ האפליקציה מותקנת בטלפון';b.classList.add('done');b.disabled=true;$('installHelp').hidden=true}
   }
   function showSteps(){
