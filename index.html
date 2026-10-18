@@ -118,7 +118,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
 <div class="wrap" dir="rtl" lang="he">
   <header>
     <h1>מד ריצה והליכה</h1>
-    <div class="todayK">היום שרפתי<br><b id="hdrKcal">0</b> קלוריות</div>
+    <div class="todayK">היום שרפתי<br><b id="hdrKcal">0</b> קלוריות<br><span id="hdrGr">≈ 0 גרם</span></div>
   </header>
 
   <nav class="tabs" role="tablist">
@@ -171,7 +171,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
     <div class="btnrow" id="gymBtns">
       <button class="go gymbg" id="gymGo" type="button" style="grid-column:1/-1">התחל אימון כושר</button>
     </div>
-    <p class="note">באימון כושר אין צורך ב-GPS ואפשר לכבות את המסך: הזמן נשמר גם אם סוגרים את האפליקציה. החישוב לפי זמן, סוג האימון והמשקל שלך. זו הערכה, לא מדידה מדויקת.</p>
+    <p class="note">במצב <b>אוטומטי</b> לא צריך לבחור תרגיל: שים את הטלפון בכיס והמסך נשאר דולק. הטלפון מרגיש כמה אתה זז ומחשב לבד: בזמן סט הוא סופר יותר, במנוחה בין סטים פחות. בשאר הסוגים החישוב לפי זמן בלבד ואפשר לכבות את המסך. 7,700 קלוריות ≈ קילו אחד, ומזה הגרמים בראש המסך. זו הערכה, לא מדידה מדויקת.</p>
   </section>
 
   <!-- התקדמות -->
@@ -260,6 +260,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
   const $=id=>document.getElementById(id);
   const RUN_KMH=7, KEY='runtracker-v1';
   const GYM=[
+    {id:'auto',  name:'אוטומטי – לפי תנועה', hint:'הטלפון בכיס, הוא מזהה לבד כמה אתה זז', met:5.0},
     {id:'light', name:'משקלים קל',      hint:'הרבה מנוחה בין סטים', met:3.5},
     {id:'normal',name:'משקלים רגיל',    hint:'אימון כוח רגיל',      met:5.0},
     {id:'heavy', name:'משקלים כבד',     hint:'כבד, מעט מנוחה',      met:6.0},
@@ -273,7 +274,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
   const fmt=n=>Math.round(n).toLocaleString('he-IL');
 
   function load(){let s;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-    s=s||{};s.days=s.days||{};s.weight=s.weight||75;s.goal=s.goal||8000;s.gymType=s.gymType||'normal';return s}
+    s=s||{};s.days=s.days||{};s.weight=s.weight||75;s.goal=s.goal||8000;s.gymType=s.gymType||'auto';if(!s.autoSet){s.gymType='auto';s.autoSet=1}return s}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
   const store=load();
   function day(k){k=k||dayKey();const d=store.days[k]||(store.days[k]={});
@@ -311,7 +312,9 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
   function onErr(e){showMsg(e.code===1?'הטלפון לא נתן הרשאת מיקום. פתח את האפליקציה מהקישור שלה בכרום, ואשר "מיקום" כשהדפדפן שואל.':'לא מצליח לקבל GPS. צא לשטח פתוח וחכה כמה שניות.')}
   function showMsg(t){$('msg').textContent=t;$('msg').hidden=false}
   async function keepAwake(){try{window.AndroidApp&&AndroidApp.keepScreenOn(true)}catch(e){}try{if('wakeLock' in navigator)wake=await navigator.wakeLock.request('screen')}catch(e){}}
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(watchId!==null||demoT)keepAwake();tickGym()}});
+  function releaseAwake(){if(running())return;try{wake&&wake.release()}catch(e){}wake=null;try{window.AndroidApp&&AndroidApp.keepScreenOn(false)}catch(e){}}
+  function setHdr(k){$('hdrKcal').textContent=fmt(k);$('hdrGr').textContent='≈ '+fmt(k/7.7)+' גרם';}
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(watchId!==null||demoT||(store.gym&&store.gymType==='auto'))keepAwake();tickGym()}});
   const running=()=>watchId!==null||demoT!==null;
   function runTick(){$('sesTime').textContent=fmtT((Date.now()-runStart)/1000)}
   function startRun(){
@@ -344,24 +347,45 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
     if(store.gym&&!store.gym.paused){ // מחליפים סוג באמצע: סוגרים את הקטע הקודם
       bankGym(prev);store.gym.startedAt=Date.now();
     }
+    if(store.gym){if(store.gymType==='auto'){startMotion();keepAwake()}else{stopMotion();releaseAwake()}}
     save();tickGym();
   });
-  const met=id=>(GYM.find(g=>g.id===id)||GYM[1]).met;
+  /* ---- זיהוי תנועה אוטומטי (חיישן התאוצה של הטלפון) ---- */
+  let motionOn=false,motionSeen=0,samples=[],autoMet=5.0,autoLevel='';
+  const LEVELS=[ // סטיית תאוצה (מ/ש²) -> רמת מאמץ
+    {max:0.35,met:1.8,name:'מנוחה בין סטים'},
+    {max:1.2, met:3.8,name:'תנועה קלה'},
+    {max:3.0, met:5.5,name:'אימון'},
+    {max:6.0, met:7.0,name:'אימון חזק'},
+    {max:1e9, met:8.5,name:'מאמץ מקסימלי'}];
+  function onMotion(e){const a=e.accelerationIncludingGravity||e.acceleration;if(!a||a.x==null)return;
+    motionSeen=Date.now();samples.push(Math.sqrt(a.x*a.x+a.y*a.y+a.z*a.z));if(samples.length>400)samples.shift()}
+  function startMotion(){if(motionOn)return;motionOn=true;samples=[];
+    try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)DeviceMotionEvent.requestPermission().catch(()=>{})}catch(e){}
+    window.addEventListener('devicemotion',onMotion)}
+  function stopMotion(){motionOn=false;window.removeEventListener('devicemotion',onMotion);samples=[];autoLevel=''}
+  setInterval(()=>{ // כל 3 שניות מעריכים מחדש
+    if(!motionOn)return;
+    if(Date.now()-motionSeen>5000||samples.length<10){autoMet=5.0;autoLevel='אין חיישן תנועה – מחשב לפי ממוצע';return}
+    const m=samples.reduce((a,b)=>a+b,0)/samples.length,sd=Math.sqrt(samples.reduce((a,b)=>a+(b-m)*(b-m),0)/samples.length);
+    samples=[];const L=LEVELS.find(l=>sd<l.max);autoMet=L.met;autoLevel=L.name;
+  },3000);
+  const met=id=>id==='auto'?autoMet:(GYM.find(g=>g.id===id)||GYM[1]).met;
   const kcalPerSec=id=>met(id)*W()/3600;
   function liveSec(){const g=store.gym;if(!g)return 0;return g.paused?0:(Date.now()-g.startedAt)/1000}
   function bankGym(type){ // מעביר את הזמן שעבר מאז ההתחלה ליום הנוכחי
     const g=store.gym;if(!g||g.paused)return;
-    const sec=Math.min(liveSec(),4*3600);const d=day();
+    const sec=Math.min(liveSec(),4*3600);const d=day();if((type||store.gymType)==='auto'&&sec>15){type='normal'}
     d.gymSec+=sec;d.gymKcal+=sec*kcalPerSec(type||store.gymType);g.sessionSec+=sec;g.sessionKcal+=sec*kcalPerSec(type||store.gymType);
     g.startedAt=Date.now();
   }
   function startGym(){
     if(running()){alertMsg('יש ריצה פעילה. עצור אותה קודם.');return}
-    store.gym={startedAt:Date.now(),paused:false,sessionSec:0,sessionKcal:0};day().count++;save();setGymBtns();tickGym();
+    store.gym={startedAt:Date.now(),paused:false,sessionSec:0,sessionKcal:0};day().count++;save();setGymBtns();tickGym();if(store.gymType==='auto'){startMotion();keepAwake()}
   }
   function pauseGym(){bankGym();store.gym.paused=true;save();setGymBtns();tickGym()}
   function resumeGym(){store.gym.paused=false;store.gym.startedAt=Date.now();save();setGymBtns();tickGym()}
-  function stopGym(){bankGym();const g=store.gym;store.gym=null;save();setGymBtns();
+  function stopGym(){bankGym();const g=store.gym;store.gym=null;save();setGymBtns();stopMotion();releaseAwake();
     $('gymMode').className='mode';$('gymMode').textContent='נשמר: '+fmt(g.sessionKcal)+' קלוריות ב-'+fmtT(g.sessionSec);renderAll();
     $('gymNow').textContent=fmt(g.sessionKcal);$('gymTime').textContent=fmtT(g.sessionSec)}
   function alertMsg(t){$('gymMode').className='mode';$('gymMode').textContent=t}
@@ -378,10 +402,11 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
     const sec=g.sessionSec+liveSec(),k=g.sessionKcal+liveSec()*kcalPerSec(store.gymType);
     $('gymNow').textContent=fmt(k);$('gymTime').textContent=fmtT(sec);
     $('gymToday').textContent=fmt(day().gymKcal+liveSec()*kcalPerSec(store.gymType));
-    const m=$('gymMode');m.className='mode '+(g.paused?'':'gym');m.textContent=g.paused?'בהפסקה':'מתאמן עכשיו';
-    $('hdrKcal').textContent=fmt(dayKcal(day())+liveSec()*kcalPerSec(store.gymType));
+    const m=$('gymMode');m.className='mode '+(g.paused?'':'gym');m.textContent=g.paused?'בהפסקה':(store.gymType==='auto'&&autoLevel?'זוהה: '+autoLevel:'מתאמן עכשיו');
+    setHdr(dayKcal(day())+liveSec()*kcalPerSec(store.gymType));
   }
-  setInterval(()=>{if(store.gym&&!store.gym.paused){tickGym();if(liveSec()>60){bankGym();save()}}},1000);
+  if(store.gym&&store.gymType==='auto'){startMotion();keepAwake()}
+  setInterval(()=>{if(store.gym&&!store.gym.paused){tickGym();if(liveSec()>(store.gymType==='auto'?3:60)){bankGym();save()}}},1000);
 
   /* ---------- התקדמות ---------- */
   let range='month';
@@ -538,7 +563,7 @@ th{color:var(--muted);font-weight:500;font-size:.78rem}
     $('runKm').textContent=d.run.toFixed(2);$('walkKm').textContent=d.walk.toFixed(2);
     $('runKcal').textContent=fmt(runKcal(d.run));$('walkKcal').textContent=fmt(walkKcal(d.walk));
     $('runAllKcal').textContent=fmt(runKcal(d.run)+walkKcal(d.walk));
-    $('hdrKcal').textContent=fmt(dayKcal(d));
+    setHdr(dayKcal(d));
     tickGym();if(!$('p-prog').hidden)renderProg();
   }
   setGymBtns();renderAll();
